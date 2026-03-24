@@ -1,0 +1,47 @@
+# 环境变量和密钥
+.env
+.env.*
+*.key
+*.pem
+secrets/
+
+# Python 虚拟环境
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Node modules
+node_modules/
+
+# AWS SAM 构建产物
+.aws-sam/
+
+# 大文件
+*.pptx
+*.xlsx
+*.pdf
+*.zip
+*.tar.gz
+
+# 日志
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# OpenClaw 内部配置（含敏感信息）
+.openclaw/
