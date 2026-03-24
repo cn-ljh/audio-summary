@@ -1,7 +1,7 @@
 # LiteLLM + AWS Bedrock 多租户 AI API 网关 — 产品架构文档
 
 **创建日期**: 2026-03-24  
-**最后更新**: 2026-03-24  
+**最后更新**: 2026-03-24（Bedrock 原生 API 支持评估）  
 **状态**: 规划中
 
 ---
@@ -55,6 +55,45 @@
 ### Phase 3 高级特性
 
 多级租户、A/B 测试框架、Prompt 版本管理、多云支持（Azure OpenAI / GCP Vertex）、白标方案
+
+---
+
+## 附：Bedrock 原生 API 格式支持评估
+
+### 背景
+
+LiteLLM 原生已支持调用 Bedrock 上的所有模型，并提供 OpenAI 兼容接口（覆盖 90% 用户需求）。
+部分客户（已有大量 Bedrock 代码、需要用 Bedrock 特有参数）希望直接使用 **Bedrock 原生 API 格式**（`InvokeModel` / `InvokeModelWithResponseStream`）访问网关。
+
+### LiteLLM 对 Bedrock 的原生支持范围
+
+| 能力 | 支持情况 |
+|------|---------|
+| 调用 Bedrock 模型（Claude/Llama/Titan/Mistral 等）| ✅ 原生支持 |
+| OpenAI 格式自动转换为 Bedrock 格式 | ✅ |
+| Streaming 流式响应 | ✅ |
+| Prompt Caching | ✅ |
+| Bedrock Guardrails 集成 | ✅ |
+| 跨 Region 路由（Cross-Region Inference）| ✅ |
+| **客户用 Bedrock 原生格式调用网关** | ❌ 需额外开发 |
+| Bedrock Managed Prompts | ❌ 需额外开发 |
+| SageMaker 自定义模型 | ❌ 需额外开发 |
+
+### 工作量拆解
+
+| 子任务 | 工作量 | 说明 |
+|--------|--------|------|
+| Bedrock 原生 API 路由层 | 3-5 天 | 解析 `application/x-amz-json-1.1` 格式，识别模型 ARN，做请求透传 |
+| SigV4 签名适配 | 2-3 天 | 处理客户侧 AWS SigV4 签名验证，或提供签名代理模式 |
+| 多租户权限绑定 | 1-2 天 | 原生格式调用也需走租户 API Key 验证和配额限流 |
+| 测试 + 文档 | 2-3 天 | |
+| **合计** | **约 2 周** | |
+
+### 建议
+
+- **MVP / Phase 1**：仅支持 OpenAI 兼容接口，覆盖绝大多数场景
+- **Phase 2**：加入 Bedrock 原生 API 格式支持，面向企业老客户迁移场景
+- 参考实现：[AWS 官方 Guidance](https://github.com/aws-solutions-library-samples/guidance-for-multi-provider-generative-ai-gateway-on-aws) 已有类似实现，可借鉴
 
 ---
 
@@ -217,6 +256,7 @@ Phase 3（19周+）
 | 2026-03-24 | ECS Fargate 从 2 AZ 起步（非 3 AZ）| MVP 阶段降低成本，后期扩展至 3 AZ |
 | 2026-03-24 | 数据库使用 Aurora Serverless v2（非 RDS PostgreSQL）| 按需计费，低流量成本更低（$50 vs $240）；自动扩缩更灵活 |
 | 2026-03-24 | API 入口用 CloudFront + ALB（非 API Gateway）| API Gateway 30s 超时限制，不适合长 LLM 响应；ALB 原生支持 SSE |
+| 2026-03-24 | Bedrock 原生 API 格式支持推迟到 Phase 2 | MVP 聚焦 OpenAI 兼容接口；原生格式约 2 周工作量，价值有限 |
 
 ---
 
