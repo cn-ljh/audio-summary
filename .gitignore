@@ -23,3 +23,10 @@ Thumbs.db
 # Environment
 .env
 *.env.local
+
+# OpenClaw skills (internal, not for public repo)
+skills/
+SKILLS_GUIDE.md
+AGENTS.md
+.openclaw/
+.clawhub/
