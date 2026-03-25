@@ -1,0 +1,25 @@
+# AWS SAM build artifacts
+.aws-sam/
+
+# Deployment info (contains account-specific values)
+deployment-info.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
