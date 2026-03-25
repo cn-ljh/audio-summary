@@ -1,0 +1,252 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1000px;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 8px;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+}
+
+pre {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.progress {
+    height: 25px;
+}
+
+.badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
+}
+
+#uploadProgress {
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+h1 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* ──────────────────────────────────────────
+   音频播放器
+   ────────────────────────────────────────── */
+.audio-player {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 4px;
+}
+
+.audio-player-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    color: #495057;
+}
+
+.audio-player-filename {
+    font-size: 0.9rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 360px;
+}
+
+/* 进度条 */
+.audio-progress-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.audio-time {
+    font-size: 0.78rem;
+    color: #6c757d;
+    min-width: 36px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.audio-progress-bar-track {
+    flex: 1;
+    height: 6px;
+    background: #dee2e6;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+}
+
+.audio-progress-bar-fill {
+    height: 100%;
+    background: #0d6efd;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.audio-progress-bar-thumb {
+    width: 14px;
+    height: 14px;
+    background: #0d6efd;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    transition: left 0.1s linear;
+}
+
+.audio-progress-bar-thumb:active {
+    cursor: grabbing;
+}
+
+/* 控制按钮行 */
+.audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.audio-ctrl-btn {
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 6px;
+    color: #495057;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.audio-ctrl-btn:hover {
+    background: #e9ecef;
+    color: #0d6efd;
+}
+
+.audio-play-btn {
+    background: #0d6efd;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(13,110,253,0.35);
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+}
+
+.audio-play-btn:hover {
+    background: #0b5ed7;
+    transform: scale(1.06);
+}
+
+.audio-play-btn:active {
+    transform: scale(0.97);
+}
+
+/* 音量控制 */
+.audio-volume-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.audio-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px;
+    height: 4px;
+    border-radius: 2px;
+    background: #dee2e6;
+    outline: none;
+    cursor: pointer;
+}
+
+.audio-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #0d6efd;
+    cursor: pointer;
+}
+
+.audio-volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #0d6efd;
+    cursor: pointer;
+    border: none;
+}
+
+/* 速度选择 */
+.audio-speed-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.audio-speed-label {
+    font-size: 0.78rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.audio-speed-btn {
+    font-size: 0.75rem;
+    padding: 2px 7px;
+    border-radius: 4px !important;
+}
+
+/* 模态框内播放器无外边框 */
+#audioPlayerContainer .audio-player {
+    border: none;
+    border-radius: 0;
+    padding: 20px 24px;
+}
+
+/* 加载占位 */
+.audio-player-loading {
+    padding: 12px 0;
+}
