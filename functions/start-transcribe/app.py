@@ -79,7 +79,8 @@ def start_transcription(task_id: str, s3_uri: str, filename: str) -> None:
         TranscriptionJobName=job_name,
         Media={'MediaFileUri': s3_uri},
         MediaFormat=format_map.get(media_format, 'mp3'),
-        LanguageCode='zh-CN',
+        IdentifyLanguage=True,
+        LanguageOptions=['zh-CN', 'en-US', 'ja-JP'],
         Settings={
             'ShowSpeakerLabels': True,
             'MaxSpeakerLabels': 10
