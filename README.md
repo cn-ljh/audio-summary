@@ -12,7 +12,7 @@ CloudFront (CDN + HTTPS 静态前端)
 API Gateway (REST API + Cognito 认证)
     ↓
 Lambda 函数
-    ├── upload-handler: 处理上传（支持直传和预签名 URL）
+    ├── upload-handler: 处理上传（生成 S3 预签名 URL）
     ├── start-transcribe: 启动转录任务
     ├── task-query: 查询任务状态
     ├── get-audio-url: 获取音频播放链接
@@ -175,7 +175,7 @@ audio-summary/
 
 | 函数 | 触发方式 | 功能 | 超时 | 内存 |
 |------|---------|------|------|------|
-| upload-handler | API Gateway POST /upload | 接收文件上传或生成预签名 URL | 60s | 512MB |
+| upload-handler | API Gateway POST /upload | 生成 S3 预签名 URL，文件由前端直传 S3 | 60s | 512MB |
 | start-transcribe | API Gateway POST /start-transcribe | 启动 AWS Transcribe 任务 | 300s | 512MB |
 | task-query | API Gateway GET /task/{id}, /tasks | 查询任务状态和列表 | 300s | 512MB |
 | get-audio-url | API Gateway GET /task/{id}/audio-url | 生成音频预签名播放 URL | 300s | 512MB |
@@ -211,13 +211,13 @@ audio-summary/
 
 ### POST /upload
 
-上传音频文件（小文件直传 Base64，大文件返回预签名 URL）。
+请求上传预签名 URL。前端通过返回的 presigned URL 将文件直传 S3，支持最大 5GB 文件。
 
 ```bash
 curl -X POST $API_ENDPOINT/upload \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"filename": "audio.mp3", "file_content": "<base64>"}'
+  -d '{"filename": "audio.mp3", "file_size": 12345678}'
 ```
 
 ### POST /start-transcribe

@@ -47,103 +47,119 @@ async function apiRequest(url, options = {}) {
 // Upload form handler
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const fileInput = document.getElementById('audioFile');
     const file = fileInput.files[0];
-    
+
     if (!file) {
         showAlert('请选择音频文件', 'danger');
         return;
     }
-    
-    // Check file size (50MB limit for Lambda payload)
-    if (file.size > 50 * 1024 * 1024) {
-        showAlert('文件过大！请选择小于 50MB 的音频文件', 'danger');
-        return;
+
+    // Soft warning for files >2GB (AWS Transcribe batch limit)
+    if (file.size > 2 * 1024 * 1024 * 1024) {
+        showAlert(
+            `提示：文件大小为 ${(file.size / 1024 / 1024 / 1024).toFixed(1)}GB，超过 AWS Transcribe 2GB 上限，转录可能失败。上传仍将继续。`,
+            'warning'
+        );
     }
-    
+
     // Show progress
     document.getElementById('uploadProgress').classList.remove('d-none');
     document.getElementById('uploadBtn').disabled = true;
     document.getElementById('uploadSpinner').classList.remove('d-none');
-    document.getElementById('uploadBtnText').textContent = '读取文件...';
-    
+    document.getElementById('uploadBtnText').textContent = '获取上传地址...';
+
     try {
-        // Read file as Base64
-        const fileContent = await readFileAsBase64(file);
-        
-        document.getElementById('uploadBtnText').textContent = '上传中...';
-        
-        // Upload to backend
+        // Step 1: Request presigned URL from backend (no file content sent through API Gateway)
         const response = await apiRequest('/upload', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 filename: file.name,
-                file_content: fileContent
+                file_size: file.size
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             showAlert(`上传失败: ${data.error}`, 'danger');
             return;
         }
-        
+
         currentTaskId = data.task_id;
+
+        // Step 2: Upload directly to S3 via presigned URL with real progress
+        document.getElementById('uploadBtnText').textContent = '上传中...';
+        await uploadToS3WithProgress(file, data.upload_url);
+
         showAlert(`文件上传成功！任务 ID: ${data.task_id}`, 'success');
-        
-        // Start transcription
+
+        // Step 3: Start transcription
         document.getElementById('uploadBtnText').textContent = '启动转录...';
-        
+
         const startResponse = await apiRequest('/start-transcribe', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                task_id: data.task_id
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: data.task_id })
         });
-        
+
         if (startResponse.ok) {
             showAlert('转录任务已启动！', 'success');
         }
-        
+
         // Show current task section and start polling
         document.getElementById('currentTaskSection').classList.remove('d-none');
         startPolling(data.task_id);
-        
+
         // Reset form
         fileInput.value = '';
-        
-        // Reload tasks list
         loadTasks();
-        
+
     } catch (error) {
         showAlert(`上传错误: ${error.message}`, 'danger');
     } finally {
         document.getElementById('uploadBtn').disabled = false;
         document.getElementById('uploadSpinner').classList.add('d-none');
         document.getElementById('uploadBtnText').textContent = '上传并处理';
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('progressText').textContent = '';
         document.getElementById('uploadProgress').classList.add('d-none');
     }
 });
 
-// Helper function to read file as Base64
-function readFileAsBase64(file) {
+// Upload file directly to S3 presigned URL with progress reporting
+function uploadToS3WithProgress(file, presignedUrl) {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            // Remove the data URL prefix (e.g., "data:audio/mpeg;base64,")
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                document.getElementById('progressBar').style.width = `${pct}%`;
+                const loaded = (e.loaded / 1024 / 1024).toFixed(1);
+                const total = (e.total / 1024 / 1024).toFixed(1);
+                document.getElementById('progressText').textContent =
+                    `上传中 ${loaded}MB / ${total}MB (${pct}%)`;
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve();
+            } else {
+                reject(new Error(`S3 上传失败，状态码: ${xhr.status}`));
+            }
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('网络错误，上传失败')));
+        xhr.addEventListener('abort', () => reject(new Error('上传已取消')));
+
+        xhr.open('PUT', presignedUrl);
+        const ext = file.name.split('.').pop().toLowerCase();
+        xhr.setRequestHeader('Content-Type', `audio/${ext}`);
+        xhr.send(file);
     });
 }
 
